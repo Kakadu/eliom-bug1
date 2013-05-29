@@ -23,9 +23,10 @@
  * http://ocsigen.org/darcsweb/?r=ocsimore;a=headblob;f=/src/site/user_widgets.eliom#l45
  *)
 let text_with_suggestions ~container get_suggestions template =
-
-  let (_: unit Eliom_lib.client_value) = {{
-    (lwt suggestions = %get_suggestions "Some string" in
+  ignore {unit{
+    let open Lwt in
+    async (fun () ->
+     %get_suggestions "Some string" >>= fun suggestions ->
      (* If we use this line --- no crash *)
      (* let divs = List.map template_hack  suggestions in*)
      (* Whe we use server function -- it crashes in appendChild *)
@@ -41,7 +42,5 @@ let text_with_suggestions ~container get_suggestions template =
      in
      firelog "finished";
      Lwt.return ()
-    ) |> Lwt.ignore_result
+    )
   }}
-  in
-  ()
