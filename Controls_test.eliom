@@ -16,17 +16,16 @@ let post_wizard = Eliom_service.service ~path:[] ~get_params:Eliom_parameter.uni
 {server{
   type rpc_res_t = (int32 * string * int64) deriving (Json)
   let template (maxexp,descr,_) =
-    div ~a:[a_class ["suggestion-item"]]
-      [ span ~a:[a_class ["post_tag"]]
-          [ span ~a:[a_class ["match"]] [pcdata descr]
+    div
+      [ span
+          [ span  [pcdata descr]
           ]
       ; br ()
-      ; span ~a:[a_style "item-multiplier"] [pcdata (sprintf "≤ %s" (Int32.to_string maxexp))]
+      ; span [pcdata (sprintf "≤ %s" (Int32.to_string maxexp))]
       ] |> Lwt.return
 
-
   let suggestions query: rpc_res_t list Lwt.t =
-    Lwt.return [(32l,"description",Int64.one);(64l, "description2", Int64.zero)]
+    Lwt.return [(32l,"dummy text",Int64.one); (64l, "dummy text 2", Int64.zero)]
 
   let rpc_make_suggestions
       : (string, rpc_res_t list)
@@ -49,24 +48,18 @@ let wizard1_handler () () =
     ~post_params:(Eliom_parameter.string "name")
     wizard2_handler in
 
-  let container = div [] in
+  let container = div ~a:[a_id "my_container"] [] in
 
+  Controls.text_with_suggestions
+                  ~container
+                  rpc_make_suggestions
+                  template_rpc
+  ;
   Eliom_tools.D.html ~title:"title"
    (body
       [ h2 [pcdata "You will see some error in firebug console"]
       ; post_form wizard2_service
-        (fun (area_name) ->
-          [ div
-              [ Controls.text_with_suggestions
-                  ~container
-                  ~name:area_name
-                  ~attribs:[]
-                  rpc_make_suggestions
-                  template_rpc
-              ; container
-              ]
-          ]
-        ) ()
+        (fun (area_name) -> [ container ]) ()
       ]
   ) |> Lwt.return
 
