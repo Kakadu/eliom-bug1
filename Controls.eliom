@@ -29,27 +29,28 @@ let text_with_suggestions ~container ~name ~attribs get_suggestions template =
 	let container = %container in
 	let get_suggestions = %get_suggestions in
 
-    let _ =
-      lwt suggestions = get_suggestions (my_input##value) in
-        (* If we use this line --- no crash *)
-        (* let divs = List.map template_hack  suggestions in*)
-        (* Whe we use server function -- it crashes in appendChild *)
-        let divs = List.map %template suggestions in
+    (lwt suggestions = get_suggestions (my_input##value) in
+     (* If we use this line --- no crash *)
+     (* let divs = List.map template_hack  suggestions in*)
+     (* Whe we use server function -- it crashes in appendChild *)
+     let divs = List.map %template suggestions in
 
-        firelog (sprintf "divs count = %d" (List.length divs));
-        divs |> List.iter (fun d ->
-          firelog "adding div";
-          let (_: _ Eliom_content_core.Html5.elt) = d in
-          try
-            (* After next line crash appears
-             * TypeError: Cannot read property '0' of undefined *)
-            Eliom_content.Html5.Manip.appendChild container d
-          with exn ->
-            firelog (sprintf "PIZDA %s" (Printexc.to_string exn) );
-            firelog "finished"
-        );
-        Lwt.return ()
-    in ()
+     firelog (sprintf "divs count = %d" (List.length divs));
+     divs |> List.iter (fun d ->
+       firelog "adding div";
+       let (_: _ Eliom_content_core.Html5.elt) = d in
+       let () =
+         try
+           (* After next line crash appears
+            * TypeError: Cannot read property '0' of undefined *)
+           Eliom_content.Html5.Manip.appendChild container d
+         with exn ->
+           firelog (sprintf "PIZDA %s" (Printexc.to_string exn) )
+       in
+       firelog "finished"
+     );
+     Lwt.return ()
+    ) |> Lwt.ignore_result
   }}
   in
   ans
